@@ -1,0 +1,612 @@
+---
+title: "Exercício 5 - Análise de Dados"
+author: "Felipe Lira Paiva"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Questão 1
+
+Carregue o banco de dados `world` que está no pacote `poliscidata`.
+
+```{r, message = FALSE, warning = FALSE}
+library(poliscidata)
+library(tidyverse)
+library(graphics)
+library(scales)
+library(vcd)
+library(knitr)
+
+banco <- world
+
+```
+
+### Questão 2
+
+Existem diversas medidas de democracia para os países: `dem_score14`, `democ11`, `fhrate04_rev`, `fhrate08_rev`, `polity`. Descreva-as graficamente e diga quais são as diferenças entre tais medidas. Para cada variável, há um histograma e um boxplot. A resposta está após os gráficos.
+
+```{r, warning = FALSE}
+    ggplot(banco, aes(dem_score14))+
+        geom_histogram(bins = 30)+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(1,13,2))+
+        scale_x_continuous(breaks=seq(1,10,1))+
+        labs(title = "Figura 1",
+             subtitle = "Gráfico do número de países democráticos (dem_score14)",
+             x = "Nota de democracia", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+
+ ggplot(banco, aes(y = dem_score14))+ 
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(1,10,1))+
+        labs(title = "Figura 2",
+             subtitle = "Boxplot da nota de Democracia (dem_score14)",
+             y = "Nota de Democracia",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  ggplot(banco, aes(democ11))+
+        geom_histogram(binwidth = 1)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 3",
+             subtitle = "Gráfico do número de países democráticos (democ11)",
+             x = "Nota de democracia", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+ 
+  ggplot(banco, aes(y = democ11))+ 
+        geom_boxplot()+
+        theme_classic()+
+        labs(title = "Figura 4",
+             subtitle = "Boxplot da nota de Democracia (democ11)",
+             y = "Nota de Democracia",
+             caption = "Elaboração própria a partir do banco 'World' (R)") 
+ 
+
+  ggplot(banco, aes(fhrate04_rev))+
+        geom_histogram(binwidth = 0.5)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(1,7,1))+
+        labs(title = "Figura 5",
+             subtitle = "Gráfico do número de países democráticos (fhrate04_rev)",
+             x = "Nota de democracia", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+ 
+  ggplot(banco, aes(y = fhrate04_rev))+ 
+        geom_boxplot()+
+        theme_classic()+
+        labs(title = "Figura 6",
+             subtitle = "Boxplot da nota de Democracia (fhrate04_rev)",
+             y = "Nota de Democracia",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+  ggplot(banco, aes(fhrate08_rev))+
+        geom_histogram(binwidth = 1) +
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,12,1))+
+        labs(title = "Figura 7",
+             subtitle = "Gráfico do número de países democráticos (fhrate08_rev)",
+             x = "Nota de democracia", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+   ggplot(banco, aes(y = fhrate08_rev)) + 
+         geom_boxplot()+
+         theme_classic()+
+         labs(title = "Figura 8",
+              subtitle = "Boxplot da nota de Democracia (fhrate08_rev)",
+              y = "Nota de Democracia",
+              caption = "Elaboração própria a partir do banco 'World' (R)")  
+  
+   ggplot(banco, aes(polity))+
+        geom_histogram(binwidth = 1)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(-10,10,1))+
+        labs(title = "Figura 9",
+             subtitle = "Gráfico do número de países democráticos (polity)",
+             x = "Nota de Democracia", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+ 
+     ggplot(banco, aes(y = polity))+ 
+         geom_boxplot()+
+         scale_y_continuous(breaks=seq(-10,10,2))+
+         theme_classic()+
+         labs(title = "Figura 10",
+              subtitle = "Boxplot da nota de Democracia (polity)",
+              y = "Nota de Democracia",
+              caption = "Elaboração própria a partir do banco 'World' (R)") 
+  
+```
+
+RESPOSTA QUESTÃO 2: Apesar de todas as variáveis serem medidas de democracia, há diferenças entre elas. Na primeira, `dem_score`, os países podem assumir qualquer valor (com duas casas decimais) entre 1 e 10. Tanto o histograma quanto o boxplot mostram uma grande variação dos dados, com países nos dois extremos. A partir do boxplot percebemos, também, que a mediana se encontra próximo de 6. 
+
+Já a variável `democ11` assume valores inteiros entre 0 e 10. Sua mediana está próxima de 7,5 (ver boxplot). Os valores com maior frequência são 0 e 10.
+
+A variável `fhrate04_rev` assume valores entre 1 e 7, incluindo ".5". As maiores frequências são 2.5 e 7. A partir do boxplot, a mediana está próxima de 5 e o valores entre o mínimo e o primeiro quartil variam mais que entre o máximo e o terceiro quartil.
+
+A variável `fhrate08_rev` assume valores entre 0 e 12. As maiores frequências estão em 12 e 3, respectivamente. A partir do histograma, vemos que os valores estão bem distribuídos ao longo da escala - com quase todos com números parecidos. A partir do boxplot, vemos que a mediana está um pouco abaixo de 7.5 e o valores entre o mínimo e o primeiro quartil variam mais que entre o máximo e o terceiro quartil.
+
+Por último, em `polity`, temos valores entre -10 e 10. As três maiores frequências estão nos valores mais altos: 10, 8 e 9, respectivamente. A mediana, a partir do boxplot, parece estar em aproximadamente 7. 
+
+
+### Questão 3
+
+Avalie a relação entre todas as medidas de democracia e desigualdade, utilizando a variável `gini08`. Descreva graficamente esta variável, a relação entre as duas variáveis, meça a correlação entre elas e faça regressões lineares (interpretando em profundidade os resultados dos coeficientes e medidas de desempenho dos modelos). Enfatize as semelhanças e diferenças entre os resultados. Quais são suas conclusões?
+
+Para ficar organizado, a correlação, o gráfico de dispersão e a regressão de cada variável estão dispostos consecutivamente. As análises estão após tudo, para facilitar a comparação e a correção.
+
+```{r, warning = FALSE}
+
+ggplot(banco, aes(gini08))+
+        geom_histogram(bins = 30)+
+        scale_x_continuous(breaks = seq(20,80,5))+
+        scale_y_continuous(breaks = seq(1,14,2))+
+        theme_classic()+
+        labs(title = "Figura 11",
+             subtitle = "Gráfico da frequência do Coeficiente de Gini (gini08)",
+             x = "Coeficiente de gini", y = "Número de países",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+
+ggplot(banco, aes(y = gini08))+ 
+        geom_boxplot()+
+        theme_classic()+
+        labs(title = "Figura 12",
+             subtitle = "Boxplot do Coeficiente de Gini (gini08)",
+             y = "Coeficiente de Gini",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+
+```
+
+##### Questão 3: Gini e Democracia (dem_score14)
+
+```{r, warning = FALSE}
+  cor.test(banco$gini08, banco$dem_score14)
+
+ggplot(banco, aes(gini08, dem_score14)) +
+    geom_point()+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(20,80,5))+
+    scale_y_continuous(breaks = seq(1,10,2))+
+    labs(title = "Figura 13",
+         subtitle = "Gráfico de dispersão do Gini e Democracia (dem_score14)",
+         x = "Coeficiente de gini", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+reg1 <- lm(gini08 ~ dem_score14, data = banco)
+  summary(reg1)
+  confint(reg1)
+  
+```
+
+##### Questão 3: Gini e Democracia (democ11)
+
+```{r, warning = FALSE}
+  cor.test(banco$gini08, banco$democ11)
+
+  ggplot(banco, aes(gini08, democ11))+
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(20,80,5))+
+    scale_y_continuous(breaks = seq(0,10,2))+
+    labs(title = "Figura 14",
+         subtitle = "Gráfico de dispersão do Gini e Democracia (democ11)",
+         x = "Coeficiente de gini", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg2 <- lm(gini08 ~ democ11, data = banco)
+  summary(reg2)
+  confint(reg2)
+
+```
+
+##### Questão 3: Gini e Democracia (fhrate04_rev)
+
+```{r, warning = FALSE}
+cor.test(banco$gini08, banco$fhrate04_rev)
+
+ ggplot(banco, aes(gini08, fhrate04_rev)) +
+    geom_point()+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(20,80,5))+
+    scale_y_continuous(breaks = seq(1,7,1))+
+    labs(title = "Figura 15",
+         subtitle = "Gráfico de dispersão do Gini e Democracia (fhrate04_rev)",
+         x = "Coeficiente de gini", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+         
+ reg3 <- lm(gini08 ~ fhrate04_rev, data = banco)
+  summary(reg3)
+  confint(reg3)
+  
+```
+
+##### Questão 3: Gini e democracia (fhrate08_rev)
+
+```{r, warning = FALSE}
+  cor.test(banco$gini08, banco$fhrate08_rev)
+ 
+ggplot(banco, aes(gini08, fhrate08_rev)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(20,80,5))+
+    scale_y_continuous(breaks = seq(1,14,2))+
+    labs(title = "Figura 16",
+         subtitle = "Gráfico de dispersão do Gini e Democracia (fhrate08_rev)",
+         x = "Coeficiente de gini", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg4 <- lm(gini08 ~ fhrate08_rev, data = banco)
+  summary(reg4)
+  confint(reg4)
+
+```
+
+##### Questão 3: Gini e democracia (polity)
+
+```{r, warning = FALSE} 
+cor.test(banco$gini08, banco$polity)
+
+ ggplot(banco, aes(gini08, polity)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(20,80,5))+
+    scale_y_continuous(breaks = seq(-11,11,2))+
+    labs(title = "Figura 17",
+         subtitle = "Gráfico de dispersão do Gini e Democracia (polity)",
+         x = "Coeficiente de gini", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+ reg5 <- lm(gini08 ~ polity, data = banco)
+  summary(reg5)
+  confint(reg5)
+```
+
+RESPOSTAS:
+
+1. **Descritivos do Gini**: Tanto com o histograma quanto com o boxplot, é possível observarmos um outlier. A mediana está próxima de 40 e os valores mais frequentes estão por volta de 34 e 40. Importante destacar que os valores codificados não são inteiros, por isso o uso de palavras como "por volta" e "aproximadamente".
+
+2. **Correlações**: Todas as cinco correlações possuem a direção negativa. Isso significa que um aumento do Gini (mais desigualdade) está correlacionada a uma diminuição do da democracia. Entretanto, nenhuma é maior que 0,22 (e duas são menos de 0,05). A relação é, portanto, pequena. Sobre o p-valor das correlações, ele é menor que 0.05 em `dem_score14` e `fhrate04_rev`  e maior que 0.05 em `democ11`, `fhrate08_rev` e `polity`. O intervalo de confiança, como é de se esperar, confirma isso: ele passa pelo 0 para `democ11`, `fhrate08_rev` e `polity`.
+
+3. **Regressões**: Não possui significância estatística: `democ11`, `fhrate08_rev` e `polity`. Os modelos dois que possuem (`dem_score14` e `fhrate04_rev`) estão com p-valor de 0.5. O R² de ambos é pequeno, ou seja, o modelo não explica muita coisa (o que poderia mudar com a adição de variáveis de controle, mas diria que dificilmente valeria o esforço, já que ambos R² são menores que 5%). Falamos acima, na correlação, mas não custa lembrar que a direção é negativa (sinal do coeficiente).
+
+4. **Intervalo de confiança**: O coeficiente está dentro do intervalo de confiança, que não passa pelo zero (apenas para os modelos de `dem_score14` e `fhrate04_rev`)
+
+### Questão 4
+
+Avalie a relação entre todas as medidas de democracia e crescimento econômico, utilizando a variável `gdppcap08`. Descreva graficamente esta variável, a relação entre as duas variáveis, meça a correlação entre elas e faça regressões lineares (interpretando em profundidade os resultados dos coeficientes e medidas de desempenho dos modelos). Enfatize as semelhanças e diferenças entre os resultados. Quais são suas conclusões?
+
+Para ficar organizado, a correlação, o gráfico de dispersão e a regressão de cada variável estão dispostos consecutivamente. As análises estão após tudo, para facilitar a comparação e a correção.
+
+```{r, warning = FALSE}
+
+ ggplot(banco, aes(gdppcap08))+
+    geom_histogram(bins = 40)+
+    scale_x_continuous(breaks = seq(0,100000,10000))+
+    scale_y_continuous(breaks = seq(0,35,5))+
+    theme_classic()+
+    labs(title = "Figura 18",
+         subtitle = "Gráfico da distribuição do PIB per Capita (gdppcap08)",
+         x = "PIB per Capita", y = "Número de países",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+ggplot(banco, aes(y = gdppcap08))+ 
+        geom_boxplot()+
+        theme_classic()+
+        labs(title = "Figura 19",
+             subtitle = "Boxplot do PIB per Capita (gdppcap08)",
+             y = "PIB per Capita",
+             caption = "Elaboração própria a partir do banco 'World' (R)")
+
+```
+
+##### Questão 4: PIB per capita e Democracia (dem_score14)
+
+```{r, warning = FALSE}
+  cor.test(banco$gdppcap08, banco$dem_score14)
+
+  ggplot(banco, aes(gdppcap08, dem_score14)) +
+    geom_point()+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(0,90000,10000))+
+    scale_y_continuous(breaks = seq(1,15,2))+
+    labs(title = "Figura 20",
+         subtitle = "Gráfico de dispersão do PIB per capita e Democracia (dem_score14)",
+         x = "PIB per capita", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+  reg6 <- lm(gdppcap08 ~ dem_score14, data = banco)
+  summary(reg6)
+  confint(reg6)
+
+```
+
+
+##### Questão 4: PIB per capita e Democracia (democ11)
+
+```{r, warning = FALSE}
+
+  cor.test(banco$gdppcap08, banco$democ11)
+
+ ggplot(banco, aes(gdppcap08, democ11)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(0,90000,10000))+
+    scale_y_continuous(breaks = seq(0,10,2))+
+    labs(title = "Figura 21",
+         subtitle = "Gráfico de dispersão do PIB per capita e Democracia (democ11)",
+         x = "PIB per capita", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg7 <- lm(gdppcap08 ~ democ11, data = banco)
+  summary(reg7)
+  confint(reg7) 
+```
+
+##### Questão 4: PIB per capita e Democracia (fhrate04_rev)
+```{r, warning = FALSE}
+
+cor.test(banco$gdppcap08, banco$fhrate04_rev)
+
+ ggplot(banco, aes(gdppcap08, fhrate04_rev)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(0,90000,10000))+
+    scale_y_continuous(breaks = seq(1,7,1))+
+    labs(title = "Figura 22",
+         subtitle = "Gráfico de dispersão do PIB per capita e Democracia (fhrate04_rev)",
+         x = "PIB per capita", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+ reg8 <- lm(gdppcap08 ~ fhrate04_rev, data = banco)
+  summary(reg8)
+  confint(reg8)
+```
+
+
+##### Questão 4: PIB per capita e Democracia (fhrate08_rev)
+```{r, warning = FALSE}
+  cor.test(banco$gdppcap08, banco$fhrate08_rev)
+
+ggplot(banco, aes(gdppcap08, fhrate08_rev)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(0,90000,10000))+
+    scale_y_continuous(breaks = seq(1,14,2))+
+    labs(title = "Figura 23",
+         subtitle = "Gráfico de dispersão do PIB per capita e Democracia (fhrate08_rev)",
+         x = "PIB per capita", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+reg9 <- lm(gdppcap08 ~ fhrate08_rev, data = banco)
+  summary(reg9)
+  confint(reg9)
+```
+
+##### Questão 4: PIB per capita e Democracia (polity)
+```{r, warning = FALSE}
+  cor.test(banco$gdppcap08, banco$polity)
+
+  ggplot(banco, aes(gdppcap08, polity)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_x_continuous(breaks = seq(0,90000,10000))+
+    scale_y_continuous(breaks = seq(-11,11,2))+
+    labs(title = "Figura 24",
+         subtitle = "Gráfico de dispersão do PIB per capita e Democracia (polity)",
+         x = "PIB per capita", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+  reg10 <- lm(gdppcap08 ~ polity, data = banco)
+  summary(reg10)
+  confint(reg10)
+```
+
+
+
+
+
+RESPOSTAS:
+
+1. **Descritivos do PIB per Capita**: No histograma, o que salta aos olhos é a grande frequência de um baixo PIB per capita. Acima do valor de 50.000 do PIB per Capita, podemos ver três casos distoantes. De fato, tais casos (e mais dois) estão mostrados como outliers no boxplot.
+
+
+2. **Correlações**: Todas as cinco correlações possuem a direção positiva Isso significa que um aumento no PIB per Capita está correlacionado com o aumento da nota de democracia. Entretanto, os valores são bem diferentes: enquanto `polity` tem uma correlação de apenas 0.17 e `democ11` de apenas 0.29, todos os outros três têm mais de 40, sendo, portanto, correlações moderadas. A maior é com `dem_score14`: 0.50. Sobre o p-valor: pequeno em todos; apenas `polity` aproxima-se do limite usual de 0.05 (tem 0.043). Nenhum intervalo de confiança pelo zero, mas, novamente `polity` chega perto.
+
+3. **Regressões**: Todos os modelos são estatisticamente significantes para o p-valor > 0.05. O modelo que mais explica a variação é o de `dem_score14`(0.25), seguido por: `fhrate08_rev` (0.20), `fhrate04_rev`(0.19), `democ11` (0.08) e `polity` (0.03). Todos os coeficientes são positivos (como era de se esperar a partir da correlação). 
+
+
+4. **Intervalo de confiança**: O coeficiente está dentro do intervalo de confiança, que não passa pelo zero (para todas as variáveis)
+
+### Questão 5
+
+Avalie a relação entre todas as medidas de democracia e produção de petróleo, utilizando a variável `oil`. Descreva graficamente esta variável, a relação entre as duas variáveis, meça a correlação entre elas e faça regressões lineares (interpretando em profundidade os resultados dos coeficientes e medidas de desempenho dos modelos). Enfatize as semelhanças e diferenças entre os resultados. Quais são suas conclusões?
+
+
+```{r, warning = FALSE}
+ggplot(banco, aes(oil))+
+    geom_histogram(bins = 30)+
+    theme_classic()+
+    labs(title = "Figura 25",
+         subtitle = "Gráfico da distribuição da produção de petróleo (oil)",
+         x = "Produção de petróleo", y = "Número de países",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+  ggplot(banco, aes(y = oil)) + 
+    geom_boxplot()+
+    theme_classic()+
+    labs(title = "Figura 26",
+         subtitle = "Boxplot da produção de petróleo (oil)",
+         y = "Produção de petróleo",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+```
+
+##### Questão 5: Petróleo e Democracia (dem_score14)
+```{r, warning = FALSE}
+  cor.test(banco$oil, banco$dem_score14)
+
+ggplot(banco, aes(oil, dem_score14)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_y_continuous(breaks = seq(1,15,1))+
+    labs(title = "Figura 27",
+         subtitle = "Gráfico de dispersão da produção de petróleo e Democracia (dem_score14)",
+         x = "Produção de petróleo", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg11 <- lm(oil ~ dem_score14, data = banco)
+  summary(reg11)
+  confint(reg11)
+```
+
+
+##### Questão 5: Petróleo e Democracia (democ11)
+```{r, warning = FALSE}
+  cor.test(banco$oil, banco$democ11)
+
+ ggplot(banco, aes(oil, democ11)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_y_continuous(breaks = seq(0,12,2))+
+    labs(title = "Figura 28",
+         subtitle = "Gráfico de dispersão da produção de petróleo e Democracia (democ11)",
+         x = "Produção de petróleo", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+ 
+ reg12 <- lm(oil ~ democ11, data = banco)
+  summary(reg12)
+  confint(reg12)
+  
+```
+
+
+##### Questão 5: Petróleo e Democracia (fhrate04_rev)
+```{r, warning = FALSE}
+  cor.test(banco$oil, banco$fhrate04_rev)
+
+ ggplot(banco, aes(oil, fhrate04_rev)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_y_continuous(breaks = seq(1,7,1))+
+    labs(title = "Figura 29",
+         subtitle = "Gráfico de dispersão da produção de petróleo e Democracia (fhrate04_rev)",
+         x = "Produção de petróleo", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg13 <- lm(oil ~ fhrate04_rev, data = banco)
+  summary(reg13)
+  confint(reg13)
+ 
+```
+
+
+##### Questão 5: Petróleo e Democracia (fhrate08_rev)
+```{r, warning = FALSE}
+  cor.test(banco$oil, banco$fhrate08_rev)
+
+ggplot(banco, aes(oil, fhrate08_rev)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_y_continuous(breaks = seq(0,12,2))+
+    labs(title = "Figura 30",
+         subtitle = "Gráfico de dispersão da produção de petróleo e Democracia (fhrate08_rev)",
+         x = "Produção de Petróleo", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+ reg14 <- lm(oil ~ fhrate08_rev, data = banco)
+  summary(reg14)
+  confint(reg14)
+  
+```
+
+
+##### Questão 5: Petróleo e Democracia (polity)
+```{r, warning = FALSE}
+  cor.test(banco$oil, banco$polity)
+
+ ggplot(banco, aes(oil, polity)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    scale_y_continuous(breaks = seq(-11,11,2))+
+    labs(title = "Figura 31",
+         subtitle = "Gráfico de dispersão da produção de petróleo e Democracia (polity)",
+         x = "Produção de petróleo", y = "Nota de democracia",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+
+  reg15 <- lm(oil ~ polity, data = banco)
+  summary(reg15)
+  confint(reg15)
+```
+
+
+
+
+
+RESPOSTAS:
+
+1. **Descritivos da produção de petróleo**: No histograma, é possível observar a grande concentração de países com zero (ou aproximadamente zero) produção de petróleo: cerca de 125. Ao longo do histograma, observamos que poucos países têm uma produção grande. O boxplot representa bem esses países produtores, já que são mostrados como outliers. Esses dados permitem supor que a produção mundial de petróleo está concentrada em poucos países.
+
+2. **Correlações**: Todas as cinco correlações possuem a direção negativa. Isso significa que um aumento na produção de petróleo está correlacionado com a diminuição da nota de democracia. Entretanto, os valores são baixos: nenhum é maior que 0.20. A correlação com `polity` é a única cujo intervalo de confiança não passa pelo zero e que tem um p-valor menor que 0.05.
+
+3. **Regressões**: O único modelo estatisticamente significante, para p-valor de 0.05, é o com a variável `polity`. Ainda assim, o seu R² é pequeno demais (0.03), ou seja, mesmo estatisticamente significante, explica pouca variação.
+
+4. **Intervalo de confiança**: Para o modelo com `polity`, o coeficiente está dentro do intervalo de confiança.
+
+
+### Questão 6
+
+Avalie a relação entre crescimento econômico e produção de petróleo. Descreva a relação entre as duas variáveis, meça a correlação entre elas e faça regressões lineares (interpretando em profundidade os resultados dos coeficientes e medidas de desempenho dos modelos). Enfatize as semelhanças e diferenças entre os resultados. Quais são suas conclusões?
+
+```{r, warning = FALSE}
+
+ cor.test(banco$oil, banco$gdppcap08)
+  
+  ggplot(banco, aes(oil, gdppcap08)) +
+    geom_point(alpha = 0.5)+
+    geom_smooth(method = "lm")+
+    theme_classic()+
+    labs(title = "Figura 32",
+         subtitle = "Gráfico de dispersão da produção de petróleo e PIB per Capita (gdppcap08)",
+         x = "Produção de Petróleo", y = "PIB per Capita",
+         caption = "Elaboração própria a partir do banco 'World' (R)")
+  
+  reg16 <- lm(oil ~ gdppcap08, data = banco)
+  summary(reg16)
+  confint(reg16)
+  
+```
+
+RESPOSTA:
+
+1. Aqui, estamos testando se a produção de petróleo impacta o crescimento econômico. 
+
+2. **Correlação**: É positiva e significativa (p-valor < 0.05), mas pequena: 0.18. O intervalo de confiança não passa pelo zero.
+
+3. **Regressão**: O intercepto (valor que que Y assume quando X é zero) não é significativo. O PIB per capita é estatisticamente signifcativo (p-valor < 0.05). O intervalo de confiança não passa pelo zero. O modelo, porém, não explica muita variação: podemos ver que o R² é de apenas 0.03
+
+### Questão 7
+
+A partir das suas conclusões sobre a relação entre democracia, economia e produção de petróleo, quais considerações são possíveis fazer sobre a relação CAUSAL entre estas variáveis? Lembre dos 4 "hurdles" do livro *Fundamentals of Political Science Research*
+
+
+
+1. Is there a credible causal mechanism that connects X to Y? Seria possível dizer que existe uma relação plausível entre economia e democracia, já que economias mais abertas (e, assim, mais conectadas com o mundo) poderiam estar associadas a mais trocas com outros países e isso transborda para ideias, tipo de regime, etc. Não por acaso, os melhores modelos de regressão foram do impacto do PIB per Capita na democracia. Sobre produção de petróleo e democracia, acredito que a relação seria mais complicada, já que petróleo, como um recurso natural, é determinado pela natureza. Assim, estaríamos condicionando algo físico-químico (ter petróleo) com um fato social (tipo de regime). Além disso, há grandes produtores de petróleo que são democracias, como os Estados Unidos e o próprio Brasil.
+2. Can we eliminate the possibility that Y causes X? No caso de PIB per Capita e democracia, eu acho uma extrapolação dizer que nossos dados, neste exercício, já podem eliminar tal relação. Seria necessário uma revisão de literatura com os achados mais importantes/recentes para descartar o fato de que a democracia que causa PIB per capita alto.
+3. Is there covariation between X and Y? Sim.
+4. Have we controlled for all confounding variables Z that might make the association between X and Y spurious? Não, não controlamos. Por isso, os modelos de regressão feitos aqui não poderiam, por exemplo, serem usados para publicação científica ou em monografias/dissertações, já que precisamos controlar pelas variáveis que também afetam nossa variável de dependente.
