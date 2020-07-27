@@ -1,0 +1,419 @@
+---
+title: "Exercício 6 - Análise de Dados"
+author: "Felipe Lira Paiva"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Questão 1
+
+Neste exercício usaremos o banco de dados do ESEB 2018. Para maiores detalhes sobre o survey, ver neste [link](https://www.cesop.unicamp.br/por/eseb). O questionário da pesquisa de 2018 está [aqui](https://www.cesop.unicamp.br/vw/1IMr0S64wNQ_MDA_91ea3_/quest_04622.pdf) e pode ser consultado para ter maiores detalhes sobre as variáveis.
+
+O banco de dados está disponível no site do CESOP para usuários cadastrados. Para facilitar o acesso, deixei o banco de dados dispónivel no seguinte endereço: https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav
+
+Baixe o banco de dados pelo R
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(knitr)
+library(haven)
+library(readr)
+library(readxl)
+library(vcd)
+library(scales)
+library(graphics)
+
+
+
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+download.file(url, "Baseatividade6.sav", mode = "wb")
+
+```
+
+O banco foi feito em SPSS e está em formato SAV. Carregue-o
+```{r}
+Baseatividade6 <- read_sav("C:/Users/Felipe/Desktop/Baseatividade6.sav")
+
+View(Baseatividade6)
+```
+
+Utilize as funções para observar o banco de dados
+```{r, message = FALSE, warning = FALSE}
+glimpse(Baseatividade6) # Nº de linhas e colunas; 1ºs casos; tipos; nomes. 
+str(Baseatividade6) # Nº de linhas e colunas; 1ºs casos; tipos
+summary(Baseatividade6) # variáveis (min, max, média, 1st e 3rd quadrante...)
+head(Baseatividade6) # primeiras linhas
+tail(Baseatividade6) # últimas linhas
+
+
+```
+
+### Questão 2
+
+A variável Q1607 indica uma nota de 0 a 10 ao candidato Jair Bolsonaro. Valores acima de 10 representam respostas não uteis para nossa pesquisa. Represente graficamente esta variável apenas com os valores válidos e descreva o resultado.*OBS: transforme esta variável para númerica com a função `as.numeric()`.
+
+Primeiro, criei um novo conjunto de dados (para não bagunçar o raw data). Depois, transformei a variável Q1607 em numérica. Em seguida, realizei o filtro, criando um conjunto para responder a esta questão. Por fim, representei graficamente. 
+
+```{r, warning = FALSE}
+atv6 <- Baseatividade6
+atv6$Q1607 <- as.numeric(atv6$Q1607)
+
+    questao2 <- atv6 %>%
+        filter(Q1607 <= 10)
+
+     ggplot(questao2, aes(Q1607))+
+        geom_histogram(bins = 11)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 1",
+             subtitle = "Gráfico de apreço a Jair Bolsonaro",
+             x = "''O quanto o/a senhor/a gosta de Jair Bolsonaro?''", 
+             y = "Número de respondentes",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao2, aes(y = Q1607))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 2",
+             subtitle = "Boxplot de apreço a Jair Bolsonaro",
+             y = "''O quanto o/a senhor/a gosta de Jair Bolsonaro?''", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+    
+```
+
+**RESPOSTA:** A partir do primeiro gráfico, podemos observar que a maior frequência é o 10, ou seja, pessoas que gostam muito de Jair Bolsonaro. A segunda maior frequência, sensivelmente menor, é o 0: pessoas que não gostam de Bolsonaro. É interessante observar que os dados, no histograma, não se aproximam de uma distribuição normal, já que os valores mais altos estão nos extremos. No boxplot, vemos que a mediana está aproximadamente no 6. 
+
+Vamos procurar entender o que está associado à aprovação deste candidato. Primeiro, vamos observar a idade dos respondentes com a variável D1A_ID. Represente esta variável graficamente.
+
+Foi mantido o filtro colocado anteriormente, de modo que só estão com a idade representada aqueles respondentes que avaliaram Bolsonaro de 0 a 10.
+
+```{r, warning = FALSE}
+      ggplot(questao2, aes(D1A_ID))+
+        geom_histogram(bins = 50)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(16,99,5))+
+        labs(title = "Figura 3",
+             subtitle = "Distribuição da idade",
+             x = "Idade do respondente", 
+             y = "Frequência",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao2, aes(y = D1A_ID))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,99,10))+
+        labs(title = "Figura 4",
+             subtitle = "Boxplot das idades",
+             y = "Idade do respondente", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+```
+
+**RESPOSTA:** A partir do histograma, é bem perceptível como a frequência diminui com a idade das pessoas - o que, decerto, deve refletir a pirâmide etária do Brasil. Importante apontar que, para os fins dessa pesquisa, foram consideradas pessoas com título de eleitor, o que siginifca que devem possuir, pelo menos, 16 anos de idade. Com o boxplot, podemos visualizar dois outliers acima de 90 anos.
+
+Teste a associação entre a nota dada a Jair Bolsonaro e idade do respondente, explicando o resultado. 
+
+Faça uma regressao linear mostrando em que medida a idade do respondente explica a avaliação do candidato Jair Bolsonaro. Interprete o resultado.
+
+```{r, warning = FALSE}
+      cor.test(questao2$D1A_ID, questao2$Q1607)
+
+      ggplot(questao2, aes(D1A_ID, Q1607)) +
+        geom_point(alpha = 0.5)+
+        geom_smooth(method = "lm")+
+        theme_classic()+
+        scale_x_continuous(breaks = seq(0,100,10))+
+        scale_y_continuous(breaks = seq(1,10,1))+
+        labs(title = "Figura 5",
+             subtitle = "Gráfico de dispersão de apreço a Bolsonaro e idade",
+             x = "Idade", y = "Apreço a Bolsonaro",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+
+      reg1 <- lm(D1A_ID ~ Q1607, data = questao2)
+      
+      summary(reg1)
+      
+      confint(reg1)
+      
+```
+
+**RESPOSTA:** 
+
+1. A direção da correlação é positiva, porém extremamente baixa (0,10). Portanto, ainda que o p-valor seja significativo (e o intervalo de confiança não passe pelo zero), a correlação é fraca. No gráfico de dispersão, podemos observar a direção da correlação (positiva) e também como os valores estão distribuídos por todo o gráfico, alguns bem distantes da reta.
+
+2. Nos resultados da regressão, observamos que o p-valor é menor que 0,05, sendo, portanto, estatisticamente significativo para o coeficiente e para o intercepto. O valor do coeficiente é de 0.39446, ou seja, a cada ano mais velho, a pessoa teria 0.39 de mais apreço a Bolsonaro. O intercepto, valor caso a variável independente seja zero, acredito que não tem muita importância aqui, já que é impossível a idade zero. O R² é muito pequeno: nosso modelo é capaz de explicar apenas 1% da variação. O erro residual padronizado é de 15,53.
+
+3. Por último, vimos o intervalo de confiança. Ele não passa pelo zero para um nível de confiança de 95%. Concluimos que nosso modelo, apesar de estatisticamente significante, explica pouco da realidade.
+
+
+Observe a variável D3_ESCOLA dos respondentes relativa a educação Represente esta variável graficamente. #OBS: observe que esta variável está como numérica, apesar de ser categórica ordinal. No entanto, trate-a como numérica, indicando que quanto maior o valor, maior o nível educacional do respondente.
+
+Foi mantido o filtro colocado anteriormente, de modo que só estão com a escolaridade representada aqueles respondentes que avaliaram Bolsonaro de 0 a 10.
+
+```{r, warning = FALSE}
+ ggplot(questao2, aes(D3_ESCOLA))+
+        geom_histogram(bins = 10)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,9,1))+
+        labs(title = "Figura 6",
+             subtitle = "Gráfico de escolaridade",
+             x = "Nível de escolaridade", 
+             y = "Número de respondentes",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao2, aes(y = D3_ESCOLA))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,9,1))+
+        labs(title = "Figura 7",
+             subtitle = "Boxplot de escolaridade",
+             y = "Nível de escolaridade", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+```
+
+**RESPOSTAS:** A partir do histograma, percebemos que a maior frequência de escolaridade é o de pessoas que terminaram o Ensino Médio (nível 6). No boxplot, vemos que a mediana e o terceiro quartil estão muito próximos (há a impressão de se sobreporem, inclusive, mas não é possível dizer, a partir do gráfico, que coincidem até nas casas decimais) no valor 6.
+
+Teste a associação entre a nota dada a Jair Bolsonaro e educação do respondente, explicando o resultado.
+
+Faça uma regressao linear mostrando em que medida a educação do respondente explica a avaliação do candidato Jair Bolsonaro. Interprete o resultado.
+
+```{r, warning = FALSE}
+ cor.test(questao2$D3_ESCOLA, questao2$Q1607)
+      
+      ggplot(questao2, aes(D3_ESCOLA, Q1607)) +
+        geom_point(alpha = 0.1)+
+        geom_smooth(method = "lm")+
+        theme_classic()+
+        scale_x_continuous(breaks = seq(0,9,2))+
+        scale_y_continuous(breaks = seq(1,10,2))+
+        labs(title = "Figura 8",
+             subtitle = "Gráfico de dispersão de apreço a Bolsonaro e nível de escolaridade",
+             x = "Escolaridade", y = "Apreço a Bolsonaro",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      reg2 <- lm(D3_ESCOLA ~ Q1607, data = questao2)
+      summary(reg2)
+      
+      confint(reg2)
+```
+
+**RESPOSTAS:**
+
+1. A direção da correlação é negativa, porém extremamente baixa (0,06). Portanto, ainda que o p-valor seja significativo (e o intervalo de confiança não passe pelo zero), a correlação é bastante fraca. No gráfico de dispersão, podemos observar a direção da correlação (negativa) e também como os valores estão distribuídos por todo o gráfico, alguns bem distantes da reta.
+
+2. Nos resultados da regressão, observamos que o p-valor é menor que 0,05, sendo, portanto, estatisticamente significativo para o coeficiente e para o intercepto. O valor do coeficiente é de 0.03856, ou seja, a cada "grau" de estudo amais, a pessoa teria 0.038 de mais apreço a Bolsonaro. O R² é extremamente pequeno: nosso modelo é capaz de explicar apenas 0,4% da variação, o que levaria a predições bem ruins. O erro residual padronizado é de 2,262.
+
+3. Por último, vimos o intervalo de confiança. Ele não passa pelo zero para um nível de confiança de 95%. Concluimos que nosso modelo, apesar de estatisticamente significante, explica quase nada da realidade.
+
+
+### Questão 3
+
+Observe a variável D9 sobre renda dos respondentes. Represente esta variável graficamente. OBS: note que os valores 9999998 e 9999999 devem ser descartados.
+
+Para responder a esta questão, foi criado um novo conjunto de dados para utilizar o filtro de D9. O objetivo é não misturar com as questões anteriores e acabar prejudicando as análises já feitas.
+
+```{r, warning =  FALSE}
+   questao3 <- atv6 %>%
+        filter(Q1607 <= 10,
+               D9 < 9999998)
+      
+      ggplot(questao3, aes(D9))+
+        geom_histogram(bins = 50)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,100000,10000))+
+        labs(title = "Figura 9",
+             subtitle = "Gráfico de renda",
+             x = "Nível de renda", 
+             y = "Número de respondentes",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao3, aes(y = D9))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,100000,10000))+
+        labs(title = "Figura 10",
+             subtitle = "Boxplot de renda",
+             y = "Nível de renda", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+
+```
+
+
+**RESPOSTAS:** A partir do histograma verificamos que a imensa maioria dos respondentes tem uma renda mensal menor que R$10.000. Com o boxplot, podemos verificar a mesma informação e, ainda, observar melhor os outliers: inclusive, até mesmo valores abaixo de 10.000 reais já são considerados como casos desviantes.
+
+
+Teste a associação entre a nota dada a Jair Bolsonaro e renda do respondente, explicando o resultado.
+
+Faça uma regressao linear mostrando em que medida a renda do respondente explica a avaliação do candidato Jair Bolsonaro. Interprete o resultado.
+
+```{r, warning = FALSE}
+      cor.test(questao3$D9, questao3$Q1607)
+      
+      ggplot(questao3, aes(D9, Q1607)) +
+        geom_point(alpha = 0.5)+
+        geom_smooth(method = "lm")+
+        theme_classic()+
+        scale_x_continuous(breaks = seq(0,100000,10000))+
+        scale_y_continuous(breaks = seq(1,10,2))+
+        labs(title = "Figura 11",
+             subtitle = "Gráfico de dispersão de apreço a Bolsonaro e nível de renda",
+             x = "Renda", y = "Apreço a Bolsonaro",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+
+      reg3 <- lm(D9 ~ Q1607, data = questao3)
+      summary(reg3)
+      confint(reg3)
+```
+
+**RESPOSTAS:** 
+
+1. De longe, foram os piores resultados que encontramos até agora. A partir do valor da correlação, podemos dizer que ela não existe, por se aproximar muito do 0 absoluto (0.004). O p-valor não é significativo, o intervalo de confiança passa pelo zero. Com o gráfico de dispersão, podemos ver os valores distribuidos e notar os outliers que falamos anteriormente. Num trabalho, seria importante refazer a correlação sem esses outliers (e divulgar os dois resultados, claro).
+
+2. Os valores da regressão também são ruins. Não há siginificância estatística (o p-valor é alto e o intervalo de confiança passa pelo zero). Além disso tudo, o R² é extremamente baixo: ou seja, o modelo não é capaz de fazer boas predições da realidade. O erro residual padronizado é de 3055.
+
+### Questão 4
+
+Deixando as variáveis socioeconômicas de lado, vamos analisar agora variáveis relativas a preferências políticas.
+
+A variável Q1501 indica uma nota de 0 a 10 ao PT. Valores acima de 10 representam respostas não uteis para nossa pesquisa. Represente graficamente esta variável apenas com os valores válidos e descreva o resultado.
+
+```{r, warning = FALSE}
+ questao4 <- atv6 %>%
+        filter(Q1501 <= 10)
+      
+      ggplot(questao4, aes(Q1501))+
+        geom_histogram(bins = 11)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 12",
+             subtitle = "Gráfico de apreço ao Partido dos Trabalhadores (PT)",
+             x = "Nível de apreço", 
+             y = "Número de respondentes",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao4, aes(y = Q1501))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 13",
+             subtitle = "Boxplot de apreço ao PT",
+             y = "Nível de apreço", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+```
+
+**RESPOSTAS:** A partir do histograma, vemos que a maior frequência entre os pesquisados é não gostar do PT (0), a segunda maior frequência é o extremo oposto: o maior apreço possível ao PT (10). Esses dados estão em consonância com a polarização que discutimos anteriormente. Com o boxplot, vemos que a mediana do nível de apreço ao PT é 3.
+
+Teste a associação entre a nota dada a Jair Bolsonaro e a nota dada ao PT, explicando o resultado.
+
+Faça uma regressao linear mostrando em que medida a nota dada ao PT pelo respondente explica a avaliação do candidato Jair Bolsonaro. Interprete o resultado.
+
+```{r,warning = FALSE}
+      questao4B <- atv6 %>%
+        filter(Q1501 <= 10,
+               Q1607 <= 10)
+      
+      cor.test(questao4B$Q1501, questao4B$Q1607)
+      
+      ggplot(questao4B, aes(Q1501, Q1607)) +
+        geom_point(alpha = 0.1)+
+        geom_smooth(method = "lm")+
+        theme_classic()+
+        scale_x_continuous(breaks = seq(0,10,2))+
+        scale_y_continuous(breaks = seq(0,10,2))+
+        labs(title = "Figura 14",
+             subtitle = "Gráfico de dispersão de apreço a Bolsonaro e apreço ao PT",
+             x = "Apreço ao PT", y = "Apreço a Bolsonaro",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      reg4 <- lm(Q1501 ~ Q1607, data = questao4B)
+      summary(reg4)
+      confint(reg4)
+      
+```
+**RESPOSTAS:**
+
+1. Na correlação, observamos um resultado moderado/fraco (0.39) e negativo, com um p-valor significativo (menor que 0.05). Essa tendência é bem observada, também, no gráfico de dispersão, com a reta evidenciando a relação negativa. Isso significa que um maior apreço a Bolsonaro está associado a um menor apreço ao PT.
+
+2. A regressão tem os p-valor do intercepto e do coeficiente significativos. Para o coeficiente, o valor é de -0.38435, o que significa que a cada 1 ponto a mais gostando do PT, é previsto um valor de -0.38 pontos gostando de Bolsonaro. O R² é 0.15, ou seja, nosso modelo explica 15% da variação, o que não é perfeito, mas não é desprezível também, já que não estamos controlando por nenhuma outra variável. O erro residual padronizado é de 3,522.
+
+3. Por último, observamos o intervalo de confiança, que não passa pelo zero. Em suma, o modelo é estatisticamente significativo, com a variável independente impactando negativamente a dependente e podemos explicar 15% da variação.
+
+### Questão 5
+
+A variável Q18 indica uma auto-atribuição em uma escala ideologica de 0 a 10, da esquerda para a direita. Valores acima de 10 representam respostas não uteis para nossa pesquisa. Represente graficamente esta variável apenas com os valores válidos e descreva o resultado.
+
+```{r, warning = FALSE}
+      questao5 <- atv6 %>%
+        filter(Q18 <= 10)
+      
+      ggplot(questao5, aes(Q18))+
+        geom_histogram(bins = 11)+
+        theme_classic()+
+        scale_x_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 15",
+             subtitle = "Gráfico de auto-avaliação ideológica",
+             x = "Ideologia", 
+             y = "Número de respondentes",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      ggplot(questao5, aes(y = Q18))+
+        geom_boxplot()+
+        theme_classic()+
+        scale_y_continuous(breaks=seq(0,10,1))+
+        labs(title = "Figura 16",
+             subtitle = "Boxplot da auto-avaliação ideológica",
+             y = "Escala de ideologia", 
+             caption = "Elaboração própria a partir de dados do IBOPE")
+```
+
+**RESPOSTAS:** Na legenda do IBOPE, 10 é o valor mais a direita do espectro ideológico, então podemos dizer que a maior frequência dos respondentes se considera de direita, enquanto a segunda maior frequência foi o 5 (que podemos interpretar como centro) e a terceira maior foi o valor mais à esquerda: 0. No boxplot, vemos que a mediana dos respondentes é 7, um valor entre o centro e a direita.
+
+Teste a associação entre a nota dada a Jair Bolsonaro e a auto-atribuição ideológica, explicando o resultado.
+
+Faça uma regressao linear mostrando em que medida a auto-atribuição ideológica do repondente explica a avaliação do candidato Jair Bolsonaro. Interprete o resultado.
+
+```{r, warning = FALSE}
+ questao5B <- atv6 %>%
+        filter(Q18 <= 10,
+               Q1607 <= 10)
+      
+      cor.test(questao5B$Q18, questao5B$Q1607)
+      
+      ggplot(questao5B, aes(Q18, Q1607)) +
+        geom_point(alpha = 0.1)+
+        geom_smooth(method = "lm")+
+        theme_classic()+
+        scale_x_continuous(breaks = seq(0,10,2))+
+        scale_y_continuous(breaks = seq(0,10,2))+
+        labs(title = "Figura 17",
+             subtitle = "Gráfico de dispersão de apreço a Bolsonaro e ideologia",
+             x = "Ideologia", y = "Apreço a Bolsonaro",
+             caption = "Elaboração própria a partir de dados do IBOPE")
+      
+      reg5 <- lm(Q18 ~ Q1607, data = questao5B)
+      summary(reg5)
+      confint(reg5)
+```
+
+**RESPOSTAS:**
+1. Observamos uma correlação com direção positiva (algo notável no gráfico de dispersão) e moderada/fraca (0.35). Ser positiva significa que uma maior identificação com a direita está associada com um maior apreço ao Bolsonaro. O p-valor é estatisticamente significativo e o intervalo de confiança não passa pelo zero.
+
+2. Na regressão, o p-valor e o intercepto são significativos (p-valor < 0.05). O valor do coeficiente é de 0.30552, ou seja, a cada um ponto de identificação maior com a direita, o candidato gosta 0.3 a mais de Bolsonaro. O R² é de 0.12, ou seja, nosso modelo explica 12% da realidade. O erro residual padronizado é de 3,192.
+
+3. O intervalo de confiança não passa pelo zero. Concluimos que temos um modelo estatisticamente significativo, com uma associação fraca/moderada entre as variáveis e um poder de explicação relativamente baixo (12%), mas que poderia ser melhorado com a inclusão de outras variáveis.
+
+### Questão 6
+
+Observando o resultado das regressões, você diria que qual tipo de variável explica mais a variação das notas atribuidas a Jair Bolsonaro, as socioeconômicas ou políticas?
+
+**RESPOSTA:** Acredito que existe um problema em comparações como essas: estamos simplesmente olhando para modelos separados e não sabemos como será o resultado se tivermos todas essas variáveis num mesmo modelo. Isto posto, baseando-me no resultados dos R², diria que as variáveis socioeconômicas são ruins em explicar a realidade. As variáveis políticas não explicam toda a variação, mas conseguem explicar mais que as socioeconômicas (em modelos separados).
+
+Observando o resultado das regressões, você diria que algum modelo erro menos comparado aos outros na nota prevista atribuída a Jair Bolsonaro?
+
+**RESPOSTA:** Se formos olhar o R², o modelo que o possui maior (ou seja, explica mais a realidade) é o apreço ao PT. Comparando os dois últimos modelos (os socioeconômicos não conseguem prever a realidade, por isso não os estou considerando aqui), vemos que o erro residual padronizado para o apreço ao PT é de 3,522 e o de ideologia é 3,192, ou seja, o último erra menos.
+
+Observando o resultado das regressões, você diria que qual(quais) variáveis possui(em) maior efeito no nota atribuída a Jair Bolsonaro?
+
+**RESPOSTA:** Assim como nas questões anteriores, é complicado comparar modelos assim, até pelo fatos dos coeficientes não estarem padronizados. Para responder tal pergunta com maior certeza, seria importante fazer uma regressão com todas as variáveis e padronizar os coeficientes a fim de compará-los. Mas se fosse para escolher algum modelo, entre os que fizemos, seria o do apreço ao PT, tanto por ter o maior R² quanto por ter o maior coeficiente (mas, mais uma vez, só estamos comparando os valores absolutos aqui, seria importante comparar os coeficientes padronizados).
