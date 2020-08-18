@@ -1,0 +1,124 @@
+---
+title: "Exercicio 9 - Análise de Dados"
+author: "Felipe Lira Paiva"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+Continuaremos com a utilização dos dados do ESEB2018. Carregue o banco da mesma forma que nos exercicios anteriores
+
+```{r}
+library(tidyverse)
+library(haven)
+library(scales)
+library(dotwhisker)
+library(lmtest)
+library(car)
+library(MASS)
+library(knitr)
+library(stargazer)
+library(sjPlot)
+
+banco <- read_spss("04622.sav") 
+
+banco <- banco %>%
+  mutate(D10 = as_factor(D10)) %>%
+  filter(Q1607 < 11, 
+         Q18 < 11,
+         D9 < 9999998,
+         Q1501 < 11)
+```
+
+Crie a mesma variável de religião utilizada no exercício anterior
+
+```{r}
+Outras <- levels(banco$D10)[-c(3,5,13)]
+
+banco <- banco %>%
+  mutate(religiao = case_when(D10 %in% Outras ~ "Outras",
+                              D10 == "Católica" ~ "Católica",
+                              D10 == "Evangélica" ~ "Evangélica",
+                              D10 == "Não tem religião" ~ "Não tem religião"))
+
+
+ggplot(banco, aes(religiao, ..count../sum(..count..) )) +
+  geom_bar() +
+  scale_y_continuous(labels = percent)
+```
+
+### Questão 1
+
+Faça uma regressão linear avaliando em que medida as variáveis independentes utilizadas nos exercícios 7 e 8, idade(D1A_ID), educação (D3_ESCOLA), renda (D9), nota atribuída ao PT (Q1501), auto-atribuição ideológica (Q18), sexo (D2_SEXO) e religião (variável criada no passo anterior) explicam a avaliação de Bolsonaro (Q1607), mas com uma interação entre as variáveis religião e sexo. Exiba o resultado da regressão e interprete os valores dos coeficientes $\beta$s estimados.
+
+```{r, warning = FALSE}
+regressao <- lm (Q1607 ~ D1A_ID + D3_ESCOLA + D9 + Q1501 + Q18 + D2_SEXO + religiao + D2_SEXO * religiao, data = banco )
+
+summary(regressao)
+
+```
+
+RESPOSTA:
+
+Começando pelo intercepto: o seu valor é de 6.114 e seu p-valor é baixo (ou seja, é significativo). Quanto às medidas do modelo: o erro padrão é 3.297 (o que o modelo erra em média), o R-quadrado é de 0.30 e o R-quadrado ajustado de 0.297 (ou seja, o modelo explica 29,7% da variação da realidade).
+
+A variável de idade (`D1A_ID`) tem um beta de 0.01065, mas não é significativa para um p-valor menor que 0.05 (p valor = 0.0888). A variável de escolaridade (`D3_ESCOLA`) é significativa (p-valor = 0.0117) e tem um beta de -0.1134, isso significa que a cada aumento na escolaridade, a aprovação a Bolsonaro diminui, em média 0.1134. A variável de renda (`D9`) tem um beta -0,00003632, mas não é significativa (p-valor 0.1897). A variável da nota atribuída ao PT (`Q1501`) é significativa (p-valor muito baixo) e tem coeficiente de -0.3956: ou seja, a cada uma unidade de nota maior que o respondente atribuiu ao PT, a avaliação de Bolsonaro diminui, em média 0.3956. A variável de auto-avaliação ideológica (`Q18`) é signifcativa (p-valor muito baixo) e tem um beta de 3.15, o que singifica que a cada aumento na escala ideológica, para a direita (valor maior), a pessoa aumenta, em média, 3.15 pontos na avaliação de Bolsonaro.
+
+Agora, vamos falar dos coeficientes das variáveis que possuem a interseção, pois a interpretação tem um detalhe.
+
+Ignorando todos os outros coeficientes, é como se a nota de Bolsonaro fosse dada pela equação:
+
+Nota Bolsonaro = Alfa + Gênero + religião + gênero * religião
+
+Na variável de gênero (`D2_SEXO`), o gênero que está aparecendo é o feminino (lembramos que há uma relação negativa entre ser mulher e apoiar Bolsonaro, como vimos no exercício passado) e a religião que não está aparecendo é a católica; então ser mulher e católica diminui, em média, o apoio a Bolsonaro em 0.6115 (p-valor 0.0122). Por que católica? Porque é o "0" em religião.
+
+Nas religiões, nenhuma variável foi significativa (todos os p-valores foram maiores que 0.05). Sendo evangélico e homem, o beta é positivo e de 1.181. Não tendo religião e sendo homem, o beta é positivo e de 0.1986. Tendo outra religião e sendo homem, o beta é negativo e de 1.583.
+
+Sendo mulher e tendo religião evangélica, o beta é negativo e de 0.3412. Sendo mulher e não tendo religião, o beta é negativo e de 0.1889. Sendo mulher e tendo outra religião, o beta é negativo e de 0.5041.
+
+
+```{R, results = 'asis'}
+
+stargazer(regressao,
+          type='html')
+```
+### Questão 2
+
+Interprete a significancia estatística dos coeficientes estimados
+
+```{r, warning = FALSE}
+dwplot(regressao,
+vline = geom_vline(xintercept = 0, colour = "grey60", linetype = 2))+
+  theme_classic()
+
+```
+
+RESPOSTA:
+
+Em relação às primeiras variáveis (as sem interseção), falamos bastante sobre no quesito anterior e vimos o p-valor. Aqui, temos nossas observações corroboradas: Idade e Renda não são significativos (estão tocando na linha tracejada), escolaridade é significativo, assim como a nota atribuída ao PT e auto-avaliação ideológica.
+
+Ao observar a variável de gênero, vemos que também é significativa e está do lado esquerdo, evidenciando a relação negativa. Se a referência fossem as mulheres (e, no resultado, aparecessem os homens), nós veríamos a variável do outro lado, exatamente "oposta" à posição em que ela se encontra agora.
+
+Em relação às outras, vemos que evangélica é a que menos toca na linha (lembrando que o p-valor é 0.549), mas, ainda assim, não é significativa. As outras tocam claramente a linha, algumas com um grande comprimento.
+
+### Questão 3
+
+Faça um gráfico que mostre a interação entre as duas variáveis. Interprete o resultado apresentado
+
+```{r, warning = FALSE}
+plot_model(regressao, type = "pred", 
+           terms = c("religiao","D2_SEXO"), 
+           ci.lvl = 0.9)
+
+plot_model(regressao, type = "pred", 
+           terms = c("religiao","D2_SEXO"), 
+           ci.lvl = 0.95)
+
+
+```
+
+RESPOSTA:
+
+Aqui, precisamos olhar se os intervalos se sobrepõe. Nitidamente, vemos que, para a religião evangélica, há uma diferença entre ser homem e ser mulher (os intervalos não se sobrepõem). Quanto os católicos, há uma sobreposição pequena para o intervalo de confiança de 95%, mas não há para 90%; mas, por ser muito pequena, podemos dizer que há sim uma diferença entre ser homem e ser mulher. Em "Outras religiões", vemos que os intervalos se sobrepõem bastante (seja a 90% ou a 95%), de modo que não há diferença entre ser homem ou mulher, quando se tem outra religião. Por fim, entre as pessoas sem religião, a sobreposição ocorre em quase metade do intervalo, como estão muito sobrepostos, afirmo que não há diferença entre ser homem ou mulher, quando se não tem religião.
