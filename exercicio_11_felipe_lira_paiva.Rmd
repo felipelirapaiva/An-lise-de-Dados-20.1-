@@ -1,0 +1,139 @@
+---
+title: "Exercicio 11 - Análise de Dados"
+author: "Felipe Lira Paiva"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+
+```{r}
+library(tidyverse)
+library(haven)
+
+link <- "https://github.com/MartinsRodrigo/Analise-de-dados/blob/master/04622.sav?raw=true"
+
+download.file(link, "04622.sav", mode = "wb")
+
+banco <- read_spss("04622.sav") 
+
+banco <- banco %>%
+  mutate(D10 = as_factor(D10)) %>%
+  filter(Q1607 < 11, 
+         Q18 < 11,
+         D9 < 9999998,
+         Q1501 < 11)
+
+
+Outras <- levels(banco$D10)[-c(3,5,13)]
+
+banco <- banco %>%
+  mutate(religiao = case_when(D10 %in% Outras ~ "Outras",
+                              D10 == "Católica" ~ "Católica",
+                              D10 == "Evangélica" ~ "Evangélica",
+                              D10 == "Não tem religião" ~ "Não tem religião"))
+```
+
+#### Questão 1
+
+Faça uma regressão linear avaliando em que medida as variáveis independentes utilizadas nos exercícios 7 e 8, idade(D1A_ID), educação (D3_ESCOLA), renda (D9), nota atribuída ao PT (Q1501), auto-atribuição ideológica (Q18), sexo (D2_SEXO) e religião (variável criada no passo anterior) explicam a avaliação de Bolsonaro (Q1607)
+
+```{r, warning = FALSE}
+reg1 <- lm(Q1607 ~ D1A_ID + D3_ESCOLA + D9 + Q1501 + Q18 + D2_SEXO + religiao, data = banco)
+
+summary(reg1)
+
+```
+
+#### Questão 2
+
+Faça o teste de homoscedasticidade do modelo e corrija as estimações dos coeficientes caso seja necessário.
+
+Primeiro, testes e interpretação:
+```{r, warning = FALSE}
+library(lmtest)
+library(car)
+
+
+plot(reg1, 3)
+
+plot(reg1, 1)
+
+bptest(reg1)
+
+ncvTest(reg1) 
+
+
+```
+
+Interpretação:
+
+1. Em "Scale-Location", nós deveríamos observar uma distribuição de pontos de maneira uniforme, de cima para baixo e ao longo de todo o eixo x. Conseguimos ver que não está bem assim: a distribuição não é uniforme.
+2. Em "Residuals vs Fitted", a linha vermelha deve ser bastante horizontal e os pontos devem estar igualmente distribuídos. Observamos claramente que os pontos não estão bem distribuídos ao longo da linha: há alguns padrões (linhas diagonais).
+3. Com os dois testes, nós podemos dar o veredito melhor. Como a hipótese nula é a presença de homocedasticidade, nós queremos um p-valor ALTO para não reiejitar a hipótese nula. Observamos, entretanto, que os p-valores dos testes são extremamente baixos. Necessitamos, portanto, corrigir.
+
+
+Agora, a correção:
+```{r, warning = FALSE}
+library(sandwich)
+
+coeftest(reg1, 
+         vcov = vcovHC(reg1, type = "HC3"))
+
+
+```
+
+
+#### Questão 3
+Avalie a multicolinearidade entre as variáveis
+
+```{r, warning=FALSE}
+vif(reg1)
+
+```
+RESPOSTA:
+
+Como vimos, quando não há multicolinariedade, o valor mínimo é 1. Como os valores são praticamente 1 (e estão longe de 4 e 10), podemos dizer que não temos problemas de multicolinariedade.
+
+
+#### Questão 4
+Verifique a presença de outilier ou observações influentes no modelo
+
+```{r, warning = FALSE}
+
+plot(reg1, 4)
+plot(reg1, 5)
+
+```
+
+RESPOSTA:
+
+Há, pelo menos, um grande outlier. Iremos tirá-lo no passo seguinte.
+
+
+#### Questão 5
+Faça a regressao linear sem a observação mais influente e avalie a alteração do resultado
+
+``` {r, warning = FALSE}
+banco2 <- banco %>%
+  filter(A1_Nquest != 2460)
+
+
+reg2 <- lm(Q1607 ~ D1A_ID + D3_ESCOLA + D9 + Q1501 + Q18 + D2_SEXO + religiao, data = banco2)
+
+summary(reg2)
+
+plot(reg2, 4)
+plot(reg2, 5)
+
+```
+
+RESPOSTAS:
+
+1. Uma das principais alterações foi com a variável de renda (`D9`): Na primeira regressão, não era  significativo, mas, sem o outlier, está significativo (p-valor < 0.05). O coeficiente é pequeno (-6.396^5; o outro também era pequeno) e a direção continuou a mesma (relação negativa, quanto maior a renda, menor o apreço a Bolsonaro). Lembramos que esse coeficiente ser pequeno é porque os valores de renda variam muito.
+2. Demais p-valores: houve mudanças neles, mas nenhuma grande o suficente para mudar a significância (ou sua falta) em relação à primeira regressão.
+3. Houve mudanças nos coeficientes também. Um dos que mais mudou foi de gênero (`D2_SEXO`): antes era -0,6685 e, agora, foi de -0,7080. Ou seja, aumentou o efeito negativo (Em outras palavras, sem outlier o fato de ser mulher diminui o apreço a Bolsonaro).
+4. Outro coeficiente que merece ser mencionado especificamente é o de "não ter religião". Ainda que o p-valor não tenha sido significativo nas duas regressões, notamos que o coeficiente, antes, era de -0,07565 e, agora, é de -0,06671 (ou seja, o impacto negativo diminuiu). Os demais coeficientes foram também alterados, mas foram mudanças menores (em casas decimais menores).
+5. O erro residual padrão não foi alterado; o r-quadrado e o r-quadrado ajustado foi pouco alterados (casas decimais)
